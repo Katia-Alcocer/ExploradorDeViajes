@@ -16,6 +16,8 @@ import {
   actualizarContador,
 } from "./ui/ui.js";
 
+import { procesarPaises } from "./utils/filters.js";
+
 /* =========================================
    ESTADO DE LA APLICACIÓN
 ========================================= */
@@ -29,6 +31,70 @@ let paises = [];
 const destinationsContainer = document.querySelector("#destinations-container");
 
 const resultsCount = document.querySelector("#results-count");
+
+const searchInput = document.querySelector("#search-input");
+
+const continentFilter = document.querySelector("#continent-filter");
+
+const sortFilter = document.querySelector("#sort-filter");
+
+/* =========================================
+   APLICAR FILTROS
+========================================= */
+
+function aplicarFiltros() {
+  /* =====================================
+       OBTENER VALORES DE LOS CONTROLES
+    ====================================== */
+
+  const texto = searchInput.value;
+
+  const continente = continentFilter.value;
+
+  const criterioOrden = sortFilter.value;
+
+  /* =====================================
+       PROCESAR LOS PAÍSES
+    ====================================== */
+
+  const resultados = procesarPaises(paises, texto, continente, criterioOrden);
+
+  /* =====================================
+       RENDERIZAR RESULTADOS
+    ====================================== */
+
+  renderPaises(resultados, destinationsContainer);
+
+  /* =====================================
+       ACTUALIZAR CONTADOR
+    ====================================== */
+
+  actualizarContador(resultados.length, resultsCount);
+}
+
+/* =========================================
+   REGISTRAR EVENTOS
+========================================= */
+
+function registrarEventos() {
+  /* =====================================
+       BÚSQUEDA EN TIEMPO REAL
+    ====================================== */
+
+  searchInput.addEventListener("input", aplicarFiltros);
+
+  /* =====================================
+       FILTRO POR CONTINENTE
+    ====================================== */
+
+  continentFilter.addEventListener("change", aplicarFiltros);
+
+  /* =====================================
+       ORDENAMIENTO
+    ====================================== */
+
+  sortFilter.addEventListener("change", aplicarFiltros);
+}
 
 /* =========================================
    INICIALIZACIÓN DE LA APLICACIÓN
@@ -68,16 +134,16 @@ async function init() {
   }
 
   /* =====================================
-       RENDERIZAR DESTINOS
+       MOSTRAR RESULTADOS INICIALES
     ====================================== */
 
-  renderPaises(paises, destinationsContainer);
+  aplicarFiltros();
 
   /* =====================================
-       ACTUALIZAR CONTADOR
+       REGISTRAR EVENTOS
     ====================================== */
 
-  actualizarContador(paises.length, resultsCount);
+  registrarEventos();
 }
 
 /* =========================================
