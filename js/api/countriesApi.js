@@ -20,11 +20,7 @@ export async function obtenerPaises() {
            REALIZAR PETICIÓN HTTP
         ====================================== */
 
-    const response = await fetch(`${API_URL}?limit=100`, {
-      headers: {
-        Authorization: `Bearer ${API_KEY}`,
-      },
-    });
+    const response = await fetch(API_URL);
 
     /* =====================================
            VALIDAR RESPUESTA HTTP
@@ -44,7 +40,7 @@ export async function obtenerPaises() {
            OBTENER ARREGLO DE PAÍSES
         ====================================== */
 
-    const paises = result.data?.objects ?? [];
+    const paises = result;
 
     /* =====================================
            RETORNAR RESULTADO

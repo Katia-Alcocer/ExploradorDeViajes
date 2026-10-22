@@ -33,4 +33,4 @@ La aplicación utiliza una sola página HTML y divide progresivamente la lógica
 
 ## Versión actual
 
-v0.2.0 - Integración con REST Countries mediante Fetch API y módulos JavaScript.
+v0.3.0 - Renderizado dinámico de destinos obtenidos desde REST Countries.
