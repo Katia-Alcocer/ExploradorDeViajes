@@ -14,7 +14,11 @@ import {
   mostrarError,
   renderPaises,
   actualizarContador,
+  mostrarDetalle,
+  cerrarDetalle,
 } from "./ui/ui.js";
+
+import { crearMapa, destruirMapa } from "./ui/mapUI.js";
 
 import { procesarPaises } from "./utils/filters.js";
 
@@ -38,6 +42,18 @@ const continentFilter = document.querySelector("#continent-filter");
 
 const sortFilter = document.querySelector("#sort-filter");
 
+const detailModal = document.querySelector("#detail-modal");
+
+const detailModalContent = document.querySelector("#detail-modal-content");
+
+/* =========================================
+   BUSCAR PAÍS POR CÓDIGO
+========================================= */
+
+function obtenerPaisPorCodigo(codigo) {
+  return paises.find((pais) => pais.codes?.alpha_3 === codigo);
+}
+
 /* =========================================
    APLICAR FILTROS
 ========================================= */
@@ -53,23 +69,57 @@ function aplicarFiltros() {
 
   const criterioOrden = sortFilter.value;
 
-  /* =====================================
-       PROCESAR LOS PAÍSES
-    ====================================== */
-
   const resultados = procesarPaises(paises, texto, continente, criterioOrden);
-
-  /* =====================================
-       RENDERIZAR RESULTADOS
-    ====================================== */
 
   renderPaises(resultados, destinationsContainer);
 
+  actualizarContador(resultados.length, resultsCount);
+}
+
+/* =========================================
+   ABRIR DETALLE DEL DESTINO
+========================================= */
+
+function abrirDetalle(codigo) {
   /* =====================================
-       ACTUALIZAR CONTADOR
+       OBTENER PAÍS
     ====================================== */
 
-  actualizarContador(resultados.length, resultsCount);
+  const pais = obtenerPaisPorCodigo(codigo);
+
+  /* =====================================
+       VALIDAR RESULTADO
+    ====================================== */
+
+  if (!pais) {
+    console.warn("País no encontrado");
+
+    return;
+  }
+
+  /* =====================================
+       MOSTRAR DETALLE
+    ====================================== */
+
+  const datosMapa = mostrarDetalle(pais, detailModal, detailModalContent);
+
+  /* =====================================
+       CREAR MAPA
+    ====================================== */
+
+  setTimeout(() => {
+    crearMapa(datosMapa.latitud, datosMapa.longitud, datosMapa.nombre);
+  }, 0);
+}
+
+/* =========================================
+   CERRAR MODAL DE DETALLE
+========================================= */
+
+function cerrarModalDetalle() {
+  destruirMapa();
+
+  cerrarDetalle(detailModal, detailModalContent);
 }
 
 /* =========================================
@@ -94,6 +144,52 @@ function registrarEventos() {
     ====================================== */
 
   sortFilter.addEventListener("change", aplicarFiltros);
+
+  /* =====================================
+       ACCIONES DE LAS TARJETAS
+    ====================================== */
+
+  destinationsContainer.addEventListener("click", (event) => {
+    const boton = event.target.closest("[data-action]");
+
+    if (!boton) {
+      return;
+    }
+
+    const accion = boton.dataset.action;
+
+    const codigo = boton.dataset.countryCode;
+
+    if (accion === "detail") {
+      abrirDetalle(codigo);
+    }
+  });
+
+  /* =====================================
+       CERRAR MODAL
+    ====================================== */
+
+  detailModal.addEventListener("click", (event) => {
+    if (event.target.id === "btn-close-detail") {
+      cerrarModalDetalle();
+
+      return;
+    }
+
+    if (event.target === detailModal) {
+      cerrarModalDetalle();
+    }
+  });
+
+  /* =====================================
+       CERRAR MODAL CON ESCAPE
+    ====================================== */
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !detailModal.classList.contains("hidden")) {
+      cerrarModalDetalle();
+    }
+  });
 }
 
 /* =========================================
