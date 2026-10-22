@@ -1,3 +1,8 @@
+# Pagina Desplegada
+
+https://katia-alcocer.github.io/ExploradorDeViajes/
+Katia Itzel Alcocer Aguilar
+
 # Explorador de Viajes y Lugares Turísticos
 
 Proyecto integrador desarrollado con JavaScript puro, APIs y librerías para explorar información de países y destinos alrededor del mundo.
@@ -33,4 +38,4 @@ La aplicación utiliza una sola página HTML y divide progresivamente la lógica
 
 ## Versión actual
 
-v0.5.0 - Detalle dinámico de destinos e integración de mapas con Leaflet.
+v0.6.0 - Favoritos persistentes con LocalStorage e integración de SweetAlert2.

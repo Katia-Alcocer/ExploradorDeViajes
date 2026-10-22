@@ -10,8 +10,16 @@
 import { obtenerPaises } from "./api/countriesApi.js";
 
 import {
+  obtenerFavoritos,
+  agregarFavorito,
+  eliminarFavorito,
+  esFavorito,
+} from "./services/favoritesService.js";
+
+import {
   mostrarCargando,
   mostrarError,
+  mostrarFavoritosVacios,
   renderPaises,
   actualizarContador,
   mostrarDetalle,
@@ -28,6 +36,8 @@ import { procesarPaises } from "./utils/filters.js";
 
 let paises = [];
 
+let vistaActual = "explorar";
+
 /* =========================================
    REFERENCIAS DEL DOM
 ========================================= */
@@ -42,6 +52,14 @@ const continentFilter = document.querySelector("#continent-filter");
 
 const sortFilter = document.querySelector("#sort-filter");
 
+const searchForm = document.querySelector("#search-form");
+
+const btnExplorar = document.querySelector("#btn-explorar");
+
+const btnFavoritos = document.querySelector("#btn-favoritos");
+
+const sectionTitle = document.querySelector("#section-title");
+
 const detailModal = document.querySelector("#detail-modal");
 
 const detailModalContent = document.querySelector("#detail-modal-content");
@@ -55,13 +73,73 @@ function obtenerPaisPorCodigo(codigo) {
 }
 
 /* =========================================
+   ACTUALIZAR NAVEGACIÓN
+========================================= */
+
+function actualizarNavegacion() {
+  if (vistaActual === "explorar") {
+    btnExplorar.className = `
+            px-4
+            py-2
+            bg-blue-600
+            text-white
+            rounded-lg
+            font-medium
+            cursor-pointer
+            hover:bg-blue-700
+            transition
+        `;
+
+    btnFavoritos.className = `
+            px-4
+            py-2
+            bg-white
+            text-slate-700
+            border
+            border-slate-300
+            rounded-lg
+            font-medium
+            cursor-pointer
+            hover:bg-slate-100
+            transition
+        `;
+  } else {
+    btnExplorar.className = `
+            px-4
+            py-2
+            bg-white
+            text-slate-700
+            border
+            border-slate-300
+            rounded-lg
+            font-medium
+            cursor-pointer
+            hover:bg-slate-100
+            transition
+        `;
+
+    btnFavoritos.className = `
+            px-4
+            py-2
+            bg-blue-600
+            text-white
+            rounded-lg
+            font-medium
+            cursor-pointer
+            hover:bg-blue-700
+            transition
+        `;
+  }
+}
+
+/* =========================================
    APLICAR FILTROS
 ========================================= */
 
 function aplicarFiltros() {
-  /* =====================================
-       OBTENER VALORES DE LOS CONTROLES
-    ====================================== */
+  if (vistaActual !== "explorar") {
+    return;
+  }
 
   const texto = searchInput.value;
 
@@ -77,19 +155,126 @@ function aplicarFiltros() {
 }
 
 /* =========================================
-   ABRIR DETALLE DEL DESTINO
+   MOSTRAR VISTA EXPLORAR
+========================================= */
+
+function mostrarExplorar() {
+  vistaActual = "explorar";
+
+  sectionTitle.textContent = "Destinos";
+
+  searchForm.classList.remove("hidden");
+
+  actualizarNavegacion();
+
+  aplicarFiltros();
+}
+
+/* =========================================
+   MOSTRAR VISTA FAVORITOS
+========================================= */
+
+function mostrarFavoritos() {
+  vistaActual = "favoritos";
+
+  sectionTitle.textContent = "Mis favoritos";
+
+  searchForm.classList.add("hidden");
+
+  actualizarNavegacion();
+
+  const favoritos = obtenerFavoritos();
+
+  if (favoritos.length === 0) {
+    mostrarFavoritosVacios(destinationsContainer);
+
+    actualizarContador(0, resultsCount);
+
+    return;
+  }
+
+  renderPaises(favoritos, destinationsContainer, "favoritos");
+
+  actualizarContador(favoritos.length, resultsCount);
+}
+
+/* =========================================
+   AGREGAR DESTINO A FAVORITOS
+========================================= */
+
+function manejarAgregarFavorito(codigo) {
+  const pais = obtenerPaisPorCodigo(codigo);
+
+  if (!pais) {
+    return;
+  }
+
+  if (esFavorito(codigo)) {
+    Swal.fire({
+      icon: "info",
+      title: "Ya está en favoritos",
+      text: "Este destino ya había sido guardado.",
+    });
+
+    return;
+  }
+
+  const agregado = agregarFavorito(pais);
+
+  if (agregado) {
+    Swal.fire({
+      icon: "success",
+      title: "Destino guardado",
+      text: `${pais.names?.common ?? "El destino"} fue agregado a favoritos.`,
+      timer: 1800,
+      showConfirmButton: false,
+    });
+  }
+}
+
+/* =========================================
+   ELIMINAR DESTINO DE FAVORITOS
+========================================= */
+
+async function manejarEliminarFavorito(codigo) {
+  const pais = obtenerPaisPorCodigo(codigo);
+
+  if (!pais) {
+    return;
+  }
+
+  const resultado = await Swal.fire({
+    icon: "warning",
+    title: "Eliminar favorito",
+    text: `¿Deseas eliminar ${pais.names?.common ?? "este destino"} de tus favoritos?`,
+    showCancelButton: true,
+    confirmButtonText: "Eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc2626",
+  });
+
+  if (!resultado.isConfirmed) {
+    return;
+  }
+
+  eliminarFavorito(codigo);
+
+  mostrarFavoritos();
+
+  Swal.fire({
+    icon: "success",
+    title: "Favorito eliminado",
+    timer: 1500,
+    showConfirmButton: false,
+  });
+}
+
+/* =========================================
+   ABRIR DETALLE
 ========================================= */
 
 function abrirDetalle(codigo) {
-  /* =====================================
-       OBTENER PAÍS
-    ====================================== */
-
   const pais = obtenerPaisPorCodigo(codigo);
-
-  /* =====================================
-       VALIDAR RESULTADO
-    ====================================== */
 
   if (!pais) {
     console.warn("País no encontrado");
@@ -97,15 +282,7 @@ function abrirDetalle(codigo) {
     return;
   }
 
-  /* =====================================
-       MOSTRAR DETALLE
-    ====================================== */
-
   const datosMapa = mostrarDetalle(pais, detailModal, detailModalContent);
-
-  /* =====================================
-       CREAR MAPA
-    ====================================== */
 
   setTimeout(() => {
     crearMapa(datosMapa.latitud, datosMapa.longitud, datosMapa.nombre);
@@ -113,7 +290,7 @@ function abrirDetalle(codigo) {
 }
 
 /* =========================================
-   CERRAR MODAL DE DETALLE
+   CERRAR MODAL
 ========================================= */
 
 function cerrarModalDetalle() {
@@ -128,13 +305,21 @@ function cerrarModalDetalle() {
 
 function registrarEventos() {
   /* =====================================
-       BÚSQUEDA EN TIEMPO REAL
+       EVITAR ENVÍO DEL FORMULARIO
+    ====================================== */
+
+  searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+  });
+
+  /* =====================================
+       BÚSQUEDA
     ====================================== */
 
   searchInput.addEventListener("input", aplicarFiltros);
 
   /* =====================================
-       FILTRO POR CONTINENTE
+       CONTINENTE
     ====================================== */
 
   continentFilter.addEventListener("change", aplicarFiltros);
@@ -146,7 +331,19 @@ function registrarEventos() {
   sortFilter.addEventListener("change", aplicarFiltros);
 
   /* =====================================
-       ACCIONES DE LAS TARJETAS
+       NAVEGACIÓN - EXPLORAR
+    ====================================== */
+
+  btnExplorar.addEventListener("click", mostrarExplorar);
+
+  /* =====================================
+       NAVEGACIÓN - FAVORITOS
+    ====================================== */
+
+  btnFavoritos.addEventListener("click", mostrarFavoritos);
+
+  /* =====================================
+       ACCIONES DE TARJETAS
     ====================================== */
 
   destinationsContainer.addEventListener("click", (event) => {
@@ -162,6 +359,18 @@ function registrarEventos() {
 
     if (accion === "detail") {
       abrirDetalle(codigo);
+
+      return;
+    }
+
+    if (accion === "favorite") {
+      manejarAgregarFavorito(codigo);
+
+      return;
+    }
+
+    if (accion === "remove-favorite") {
+      manejarEliminarFavorito(codigo);
     }
   });
 
@@ -182,7 +391,7 @@ function registrarEventos() {
   });
 
   /* =====================================
-       CERRAR MODAL CON ESCAPE
+       CERRAR CON ESCAPE
     ====================================== */
 
   document.addEventListener("keydown", (event) => {
@@ -193,33 +402,17 @@ function registrarEventos() {
 }
 
 /* =========================================
-   INICIALIZACIÓN DE LA APLICACIÓN
+   INICIALIZACIÓN
 ========================================= */
 
 async function init() {
   console.log("Explorador de Viajes iniciado");
 
-  /* =====================================
-       MOSTRAR ESTADO DE CARGA
-    ====================================== */
-
   mostrarCargando(destinationsContainer);
-
-  /* =====================================
-       OBTENER PAÍSES DESDE LA API
-    ====================================== */
 
   paises = await obtenerPaises();
 
-  /* =====================================
-       COMPROBAR RESULTADOS
-    ====================================== */
-
   console.log("Países obtenidos:", paises);
-
-  /* =====================================
-       VALIDAR SI LA API RETORNÓ DATOS
-    ====================================== */
 
   if (paises.length === 0) {
     mostrarError(destinationsContainer);
@@ -229,15 +422,11 @@ async function init() {
     return;
   }
 
-  /* =====================================
-       MOSTRAR RESULTADOS INICIALES
-    ====================================== */
+  vistaActual = "explorar";
+
+  actualizarNavegacion();
 
   aplicarFiltros();
-
-  /* =====================================
-       REGISTRAR EVENTOS
-    ====================================== */
 
   registrarEventos();
 }

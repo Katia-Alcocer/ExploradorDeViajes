@@ -1,10 +1,9 @@
 /* =========================================
    INTERFAZ DE USUARIO
-   Funciones encargadas de actualizar el DOM
 ========================================= */
 
 /* =========================================
-   MOSTRAR ESTADO DE CARGA
+   MOSTRAR CARGANDO
 ========================================= */
 
 export function mostrarCargando(contenedor) {
@@ -26,14 +25,7 @@ export function mostrarCargando(contenedor) {
                 🌎
             </div>
 
-            <h3
-                class="
-                    text-xl
-                    font-semibold
-                    text-slate-800
-                    mb-2
-                "
-            >
+            <h3 class="text-xl font-semibold text-slate-800 mb-2">
                 Cargando destinos...
             </h3>
 
@@ -68,20 +60,48 @@ export function mostrarError(contenedor) {
                 ⚠️
             </div>
 
-            <h3
-                class="
-                    text-xl
-                    font-semibold
-                    text-red-700
-                    mb-2
-                "
-            >
+            <h3 class="text-xl font-semibold text-red-700 mb-2">
                 No fue posible cargar los destinos
             </h3>
 
             <p class="text-red-600">
-                Verifica tu conexión e intenta
-                nuevamente.
+                Verifica tu conexión e intenta nuevamente.
+            </p>
+
+        </div>
+    `;
+}
+
+/* =========================================
+   MOSTRAR FAVORITOS VACÍOS
+========================================= */
+
+export function mostrarFavoritosVacios(contenedor) {
+  contenedor.innerHTML = `
+        <div
+            class="
+                col-span-full
+                bg-white
+                border
+                border-dashed
+                border-slate-300
+                rounded-xl
+                p-12
+                text-center
+            "
+        >
+
+            <div class="text-5xl mb-4">
+                ♡
+            </div>
+
+            <h3 class="text-xl font-semibold text-slate-800 mb-2">
+                No tienes destinos favoritos
+            </h3>
+
+            <p class="text-slate-500">
+                Explora los destinos y guarda
+                los que más te interesen.
             </p>
 
         </div>
@@ -100,11 +120,7 @@ export function actualizarContador(total, elementoContador) {
    RENDERIZAR DESTINOS
 ========================================= */
 
-export function renderPaises(paises, contenedor) {
-  /* =====================================
-       VALIDAR SI EXISTEN RESULTADOS
-    ====================================== */
-
+export function renderPaises(paises, contenedor, modo = "explorar") {
   if (paises.length === 0) {
     contenedor.innerHTML = `
             <div
@@ -124,20 +140,12 @@ export function renderPaises(paises, contenedor) {
                     🔎
                 </div>
 
-                <h3
-                    class="
-                        text-xl
-                        font-semibold
-                        text-slate-800
-                        mb-2
-                    "
-                >
+                <h3 class="text-xl font-semibold text-slate-800 mb-2">
                     No encontramos destinos
                 </h3>
 
                 <p class="text-slate-500">
-                    Intenta cambiar los criterios
-                    de búsqueda.
+                    Intenta cambiar los criterios de búsqueda.
                 </p>
 
             </div>
@@ -146,16 +154,8 @@ export function renderPaises(paises, contenedor) {
     return;
   }
 
-  /* =====================================
-       CREAR TARJETAS
-    ====================================== */
-
   const tarjetas = paises
     .map((pais) => {
-      /* =================================
-               OBTENER INFORMACIÓN DEL PAÍS
-            ================================== */
-
       const nombre = pais.names?.common ?? "Nombre no disponible";
 
       const region = pais.region ?? "Región no disponible";
@@ -166,15 +166,55 @@ export function renderPaises(paises, contenedor) {
 
       const codigo = pais.codes?.alpha_3 ?? "";
 
-      /* =================================
-               FORMATEAR POBLACIÓN
-            ================================== */
-
       const poblacionFormateada = poblacion.toLocaleString("es-MX");
 
       /* =================================
-               CREAR HTML DE LA TARJETA
-            ================================== */
+                   BOTÓN SEGÚN EL MODO
+                ================================== */
+
+      const botonFavorito =
+        modo === "favoritos"
+          ? `
+                            <button
+                                type="button"
+                                data-action="remove-favorite"
+                                data-country-code="${codigo}"
+                                class="
+                                    px-4
+                                    py-2
+                                    border
+                                    border-red-300
+                                    text-red-600
+                                    rounded-lg
+                                    cursor-pointer
+                                    hover:bg-red-50
+                                    transition
+                                "
+                            >
+                                ♥ Eliminar
+                            </button>
+                        `
+          : `
+                            <button
+                                type="button"
+                                data-action="favorite"
+                                data-country-code="${codigo}"
+                                aria-label="Agregar ${nombre} a favoritos"
+                                class="
+                                    px-4
+                                    py-2
+                                    border
+                                    border-slate-300
+                                    text-slate-600
+                                    rounded-lg
+                                    cursor-pointer
+                                    hover:bg-slate-100
+                                    transition
+                                "
+                            >
+                                ♡
+                            </button>
+                        `;
 
       return `
                     <article
@@ -190,65 +230,28 @@ export function renderPaises(paises, contenedor) {
                         "
                     >
 
-                        <!-- =============================
-                             BANDERA
-                        ============================== -->
-
-                        <div
-                            class="
-                                h-48
-                                bg-slate-100
-                                overflow-hidden
-                            "
-                        >
+                        <div class="h-48 bg-slate-100 overflow-hidden">
 
                             <img
                                 src="${bandera}"
                                 alt="Bandera de ${nombre}"
-                                class="
-                                    w-full
-                                    h-full
-                                    object-cover
-                                "
+                                class="w-full h-full object-cover"
                             >
 
                         </div>
 
 
-                        <!-- =============================
-                             INFORMACIÓN
-                        ============================== -->
-
                         <div class="p-5">
 
-                            <div
-                                class="
-                                    flex
-                                    items-start
-                                    justify-between
-                                    gap-4
-                                    mb-4
-                                "
-                            >
+                            <div class="flex items-start justify-between gap-4 mb-4">
 
                                 <div>
 
-                                    <h3
-                                        class="
-                                            text-xl
-                                            font-bold
-                                            text-slate-900
-                                        "
-                                    >
+                                    <h3 class="text-xl font-bold text-slate-900">
                                         ${nombre}
                                     </h3>
 
-                                    <p
-                                        class="
-                                            text-sm
-                                            text-slate-500
-                                        "
-                                    >
+                                    <p class="text-sm text-slate-500">
                                         ${region}
                                     </p>
 
@@ -272,37 +275,18 @@ export function renderPaises(paises, contenedor) {
                             </div>
 
 
-                            <!-- =============================
-                                 POBLACIÓN
-                            ============================== -->
-
                             <div class="mb-5">
 
-                                <p
-                                    class="
-                                        text-xs
-                                        text-slate-500
-                                    "
-                                >
+                                <p class="text-xs text-slate-500">
                                     Población
                                 </p>
 
-                                <p
-                                    class="
-                                        text-lg
-                                        font-semibold
-                                        text-slate-800
-                                    "
-                                >
+                                <p class="text-lg font-semibold text-slate-800">
                                     ${poblacionFormateada}
                                 </p>
 
                             </div>
 
-
-                            <!-- =============================
-                                 ACCIONES
-                            ============================== -->
 
                             <div class="flex gap-3">
 
@@ -326,26 +310,7 @@ export function renderPaises(paises, contenedor) {
                                     Ver más
                                 </button>
 
-
-                                <button
-                                    type="button"
-                                    data-action="favorite"
-                                    data-country-code="${codigo}"
-                                    aria-label="Agregar ${nombre} a favoritos"
-                                    class="
-                                        px-4
-                                        py-2
-                                        border
-                                        border-slate-300
-                                        text-slate-600
-                                        rounded-lg
-                                        cursor-pointer
-                                        hover:bg-slate-100
-                                        transition
-                                    "
-                                >
-                                    ♡
-                                </button>
+                                ${botonFavorito}
 
                             </div>
 
@@ -360,14 +325,10 @@ export function renderPaises(paises, contenedor) {
 }
 
 /* =========================================
-   MOSTRAR DETALLE DEL DESTINO
+   MOSTRAR DETALLE
 ========================================= */
 
 export function mostrarDetalle(pais, modal, modalContent) {
-  /* =====================================
-       OBTENER INFORMACIÓN DEL PAÍS
-    ====================================== */
-
   const nombre = pais.names?.common ?? "Nombre no disponible";
 
   const nombreOficial = pais.names?.official ?? "No disponible";
@@ -388,15 +349,7 @@ export function mostrarDetalle(pais, modal, modalContent) {
 
   const longitud = pais.coordinates?.lng;
 
-  /* =====================================
-       FORMATEAR POBLACIÓN
-    ====================================== */
-
   const poblacionFormateada = poblacion.toLocaleString("es-MX");
-
-  /* =====================================
-       CREAR CONTENIDO DEL MODAL
-    ====================================== */
 
   modalContent.innerHTML = `
         <article
@@ -407,10 +360,6 @@ export function mostrarDetalle(pais, modal, modalContent) {
                 shadow-2xl
             "
         >
-
-            <!-- =============================
-                 CABECERA
-            ============================== -->
 
             <div
                 class="
@@ -426,24 +375,11 @@ export function mostrarDetalle(pais, modal, modalContent) {
 
                 <div>
 
-                    <p
-                        class="
-                            text-sm
-                            text-blue-600
-                            font-medium
-                        "
-                    >
+                    <p class="text-sm text-blue-600 font-medium">
                         ${codigo}
                     </p>
 
-                    <h2
-                        class="
-                            text-2xl
-                            md:text-3xl
-                            font-bold
-                            text-slate-900
-                        "
-                    >
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900">
                         ${nombre}
                     </h2>
 
@@ -474,35 +410,16 @@ export function mostrarDetalle(pais, modal, modalContent) {
             </div>
 
 
-            <!-- =============================
-                 BANDERA
-            ============================== -->
-
-            <div
-                class="
-                    h-64
-                    md:h-80
-                    bg-slate-100
-                    overflow-hidden
-                "
-            >
+            <div class="h-64 md:h-80 bg-slate-100 overflow-hidden">
 
                 <img
                     src="${bandera}"
                     alt="Bandera de ${nombre}"
-                    class="
-                        w-full
-                        h-full
-                        object-cover
-                    "
+                    class="w-full h-full object-cover"
                 >
 
             </div>
 
-
-            <!-- =============================
-                 INFORMACIÓN
-            ============================== -->
 
             <div class="p-6">
 
@@ -517,86 +434,50 @@ export function mostrarDetalle(pais, modal, modalContent) {
                     "
                 >
 
-                    <div
-                        class="
-                            bg-slate-50
-                            rounded-xl
-                            p-4
-                        "
-                    >
+                    <div class="bg-slate-50 rounded-xl p-4">
                         <p class="text-xs text-slate-500">
                             Capital
                         </p>
-
                         <p class="font-semibold text-slate-900">
                             ${capital}
                         </p>
                     </div>
 
 
-                    <div
-                        class="
-                            bg-slate-50
-                            rounded-xl
-                            p-4
-                        "
-                    >
+                    <div class="bg-slate-50 rounded-xl p-4">
                         <p class="text-xs text-slate-500">
                             Región
                         </p>
-
                         <p class="font-semibold text-slate-900">
                             ${region}
                         </p>
                     </div>
 
 
-                    <div
-                        class="
-                            bg-slate-50
-                            rounded-xl
-                            p-4
-                        "
-                    >
+                    <div class="bg-slate-50 rounded-xl p-4">
                         <p class="text-xs text-slate-500">
                             Subregión
                         </p>
-
                         <p class="font-semibold text-slate-900">
                             ${subregion}
                         </p>
                     </div>
 
 
-                    <div
-                        class="
-                            bg-slate-50
-                            rounded-xl
-                            p-4
-                        "
-                    >
+                    <div class="bg-slate-50 rounded-xl p-4">
                         <p class="text-xs text-slate-500">
                             Población
                         </p>
-
                         <p class="font-semibold text-slate-900">
                             ${poblacionFormateada}
                         </p>
                     </div>
 
 
-                    <div
-                        class="
-                            bg-slate-50
-                            rounded-xl
-                            p-4
-                            sm:col-span-2
-                        "
-                    >
+                    <div class="bg-slate-50 rounded-xl p-4 sm:col-span-2">
                         <p class="text-xs text-slate-500">
                             Nombre oficial
                         </p>
-
                         <p class="font-semibold text-slate-900">
                             ${nombreOficial}
                         </p>
@@ -605,27 +486,16 @@ export function mostrarDetalle(pais, modal, modalContent) {
                 </div>
 
 
-                <!-- =============================
-                     MAPA
-                ============================== -->
-
                 <div>
 
                     <div class="mb-3">
 
-                        <h3
-                            class="
-                                text-xl
-                                font-bold
-                                text-slate-900
-                            "
-                        >
+                        <h3 class="text-xl font-bold text-slate-900">
                             Ubicación
                         </h3>
 
                         <p class="text-sm text-slate-500">
-                            Centro geográfico aproximado
-                            del país.
+                            Centro geográfico aproximado del país.
                         </p>
 
                     </div>
@@ -650,17 +520,9 @@ export function mostrarDetalle(pais, modal, modalContent) {
         </article>
     `;
 
-  /* =====================================
-       MOSTRAR MODAL
-    ====================================== */
-
   modal.classList.remove("hidden");
 
   document.body.classList.add("overflow-hidden");
-
-  /* =====================================
-       RETORNAR DATOS PARA EL MAPA
-    ====================================== */
 
   return {
     latitud,
